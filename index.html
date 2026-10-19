@@ -1,160 +1,568 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="description" content="REFINE: Super-efficient 3D Gaussian Splatting Pruning via Rendering-Free Primitive Importance">
-  <meta name="keywords" content="3D Gaussian Splatting, Pruning, Primitive Importance, Rendering-free, Efficiency, REFINE">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>REFINE: Super-efficient 3DGS Pruning</title>
-
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
-
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/favicon.svg">
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/bulma-carousel.min.js"></script>
-  <script src="./static/js/bulma-slider.min.js"></script>
-  <script src="./static/js/index.js"></script>
+  <meta name="description" content="REFINE: Super-efficient 3D Gaussian Splatting Pruning via Rendering-Free Primitive Importance (ECCV 2026). Project page, method, experiments, comparisons, and demo.">
+  <meta name="keywords" content="REFINE, 3D Gaussian Splatting, 3DGS, pruning, rendering-free, primitive importance, Hessian, ECCV 2026">
+  <meta name="theme-color" content="#ffffff">
+  <title>REFINE | Rendering-Free 3D Gaussian Splatting Pruning — ECCV 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f6f9fb;
+      --surface-2: #edf3f6;
+      --ink: #192839;
+      --ink-light: #425267;
+      --muted: #637588;
+      --line: #dfe8ef;
+      --blue: #2b718e;
+      --blue-dark: #1c5c77;
+      --green: #538d7e;
+      --blue-pale: #e6f1f5;
+      --radius: 18px;
+      --shadow: 0 20px 60px rgba(29, 58, 77, .09);
+      --width: 1140px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body { margin: 0; font-family: 'DM Sans', 'Segoe UI', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.68; -webkit-font-smoothing: antialiased; }
+    img { max-width: 100%; display: block; }
+    a { color: var(--blue); }
+    a:hover { color: var(--blue-dark); }
+    button { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #8bc5db; outline-offset: 3px; }
+    .container { width: min(var(--width), calc(100% - 44px)); margin: auto; }
+    .nav-wrap { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.94); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(223,232,239,.9); }
+    .nav { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; gap: 10px; align-items: center; color: var(--ink); text-decoration: none; white-space: nowrap; }
+    .brand-symbol { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 10px; background: linear-gradient(135deg, #327f9a, #5a9182); color: white; font-size: 18px; font-weight: 800; }
+    .brand-name { font-weight: 800; letter-spacing: -.055em; font-size: 1.15rem; }
+    .brand-tag { color: var(--muted); border-left: 1px solid var(--line); padding-left: 10px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
+    .nav-links { display: flex; align-items: center; gap: 23px; }
+    .nav-links a { color: #516375; text-decoration: none; font-size: .86rem; font-weight: 700; transition: color .2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-links .nav-code { color: var(--blue); }
+    .menu-toggle { display: none; border: 1px solid var(--line); background: white; color: var(--ink); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+    .hero { padding: 80px 0 66px; overflow: hidden; position: relative; background: radial-gradient(circle at 12% 12%, rgba(64,139,166,.12), transparent 32%), radial-gradient(circle at 91% 14%, rgba(83,141,126,.12), transparent 30%), linear-gradient(180deg, #fcfeff, #fff 84%); }
+    .hero-inner { max-width: 1010px; margin: auto; text-align: center; }
+    .eyebrow { display: inline-flex; gap: 8px; align-items: center; border: 1px solid #d8e6eb; border-radius: 999px; background: rgba(255,255,255,.76); padding: 7px 13px; font-size: .77rem; font-weight: 800; letter-spacing: .09em; color: var(--blue-dark); text-transform: uppercase; }
+    .eyebrow-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    h1, h2, h3, p { overflow-wrap: break-word; }
+    h1 { margin: 22px auto 18px; max-width: 1010px; font-size: clamp(2.4rem, 5vw, 4.55rem); line-height: 1.11; letter-spacing: -.055em; font-weight: 800; }
+    h1 .accent { background: linear-gradient(120deg, #237397, #4b8c84); color: transparent; -webkit-background-clip: text; background-clip: text; }
+    .hero-subtitle { max-width: 845px; margin: 0 auto; color: var(--ink-light); font: 400 clamp(1.05rem, 2vw, 1.29rem)/1.58 'Source Serif 4', Georgia, serif; }
+    .author-list { display: flex; justify-content: center; flex-wrap: wrap; column-gap: 19px; row-gap: 3px; margin: 25px auto 8px; font-size: .96rem; font-weight: 700; }
+    .author-list a { text-decoration: none; color: var(--blue-dark); border-bottom: 1px solid #b6d2dc; }
+    .author-list sup { color: var(--muted); margin-left: 2px; font-weight: 600; }
+    .affiliations { max-width: 1000px; color: var(--muted); margin: 4px auto 0; font-size: .82rem; line-height: 1.7; }
+    .affiliations span { display: inline-block; margin: 0 7px; }
+    .hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 27px auto 0; }
+    .btn { display: inline-flex; gap: 10px; align-items: center; justify-content: center; min-height: 44px; padding: 11px 20px; border-radius: 999px; font-weight: 750; text-decoration: none; font-size: .89rem; border: 1px solid transparent; cursor: pointer; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.primary { background: var(--ink); color: #fff; box-shadow: 0 8px 20px rgba(25,40,57,.14); }
+    .btn.primary:hover { background: var(--blue-dark); color: white; }
+    .btn.outline { border-color: #d5e0e8; color: var(--ink); background: white; }
+    .btn.outline:hover { color: var(--blue); border-color: #b6cdd7; }
+    .btn .btn-icon { font-weight: 900; opacity: .82; }
+    .hero-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 15px; max-width: 900px; margin: 52px auto 0; }
+    .metric { border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,.94); padding: 20px 14px; box-shadow: 0 7px 24px rgba(35,58,72,.04); }
+    .metric strong { display: block; color: var(--blue-dark); font-size: clamp(1.3rem, 2.6vw, 1.73rem); letter-spacing: -.045em; font-weight: 800; line-height: 1.26; }
+    .metric span { display: block; color: var(--muted); font-size: .8rem; line-height: 1.45; margin-top: 8px; }
+    .section { padding: 83px 0; }
+    .section.alt { background: var(--surface); }
+    .section-heading { text-align: center; max-width: 845px; margin: 0 auto 34px; }
+    .kicker { color: var(--blue); font-size: .77rem; text-transform: uppercase; letter-spacing: .13em; font-weight: 800; margin: 0 0 9px; }
+    h2 { margin: 0; font-size: clamp(1.85rem, 3.3vw, 2.65rem); letter-spacing: -.042em; line-height: 1.21; }
+    .section-heading > p { color: var(--muted); max-width: 760px; margin: 15px auto 0; font-size: .97rem; }
+    .prose { max-width: 925px; margin: auto; color: #425165; font-size: 1.02rem; text-align: justify; }
+    .prose p { margin: 0; }
+    .prose strong { color: var(--ink); }
+    .callout { background: linear-gradient(120deg, #f3f9fb, #f0f6f3); border: 1px solid #dce9ed; border-left: 4px solid var(--green); border-radius: 14px; padding: 22px 25px; color: #405365; }
+    .callout strong { color: var(--ink); }
+    .overview-showcase { padding: 6px 0 0; }
+    .figure-card { border: 1px solid var(--line); background: #fff; border-radius: 22px; padding: 13px; overflow: hidden; box-shadow: var(--shadow); }
+    .figure-media { overflow: hidden; border-radius: 14px; background: #f0f6fa; position: relative; }
+    .figure-media img { width: 100%; height: auto; }
+    .figure-media.is-missing img { display: none; }
+    .figure-fallback { display: none; min-height: 260px; justify-content: center; align-items: center; flex-direction: column; gap: 10px; padding: 25px; text-align: center; background: radial-gradient(circle at 15% 35%, rgba(65,140,166,.12), transparent 40%), linear-gradient(135deg, #f2f8fb, #edf6f1); }
+    .figure-media.is-missing .figure-fallback { display: flex; }
+    .figure-fallback .placeholder-label { font-size: .72rem; text-transform: uppercase; color: var(--blue); letter-spacing: .11em; font-weight: 800; }
+    .figure-fallback .placeholder-name { font-weight: 800; color: var(--ink); font-size: 1.05rem; }
+    .figure-fallback code { background: white; border: 1px solid var(--line); padding: 5px 9px; color: var(--blue-dark); border-radius: 7px; font-size: .82rem; word-break: break-word; }
+    .figure-fallback p { font-size: .8rem; color: var(--muted); margin: 0; }
+    .figure-caption { text-align: center; color: var(--muted); padding: 14px 15px 5px; font-size: .85rem; line-height: 1.6; }
+    .hero-figure { margin: 42px auto 0; }
+    .hero-figure .figure-fallback { min-height: 360px; }
+    .fallback-pipeline { display: flex; align-items: stretch; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap; margin: 12px auto 6px; }
+    .fallback-step { display: grid; place-content: center; gap: 9px; background: rgba(255,255,255,.9); border: 1px solid #d5e3e9; border-radius: 13px; min-height: 94px; padding: 13px; width: min(170px, 100%); }
+    .fallback-step strong { font-size: .8rem; color: var(--ink); line-height: 1.3; }
+    .fallback-step small { color: var(--muted); font-size: .72rem; line-height: 1.25; }
+    .fallback-arrow { align-self: center; color: var(--blue); font-size: 1.5rem; font-weight: 800; }
+    .challenge-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 17px; margin-top: 26px; }
+    .info-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 26px; box-shadow: 0 8px 26px rgba(29,58,77,.04); }
+    .info-card.featured { background: linear-gradient(150deg, #f0f7fa, #f6faf8); border-color: #cce0e7; }
+    .icon-box { height: 41px; width: 41px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 18px; color: var(--blue); background: var(--blue-pale); font-size: 1.1rem; font-weight: 800; }
+    .info-card h3 { font-size: 1.05rem; line-height: 1.35; letter-spacing: -.017em; margin: 0 0 10px; }
+    .info-card p { color: var(--muted); font-size: .9rem; margin: 0; }
+    .split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; align-items: center; margin-top: 24px; }
+    .split .figure-card { margin: 0; }
+    .side-text { color: var(--ink-light); font-size: .96rem; }
+    .side-text h3 { color: var(--ink); font-size: 1.37rem; letter-spacing: -.027em; line-height: 1.35; }
+    .side-text p { margin: 0 0 12px; }
+    .side-text ul { margin: 13px 0 0; padding-left: 22px; }
+    .side-text li { margin: 9px 0; }
+    .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 26px 0 0; }
+    .pipeline-card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 23px; }
+    .step-number { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--blue-pale); color: var(--blue); border-radius: 10px; font-weight: 800; font-size: .8rem; margin-bottom: 14px; }
+    .pipeline-card h3 { margin: 0 0 9px; font-size: 1.03rem; letter-spacing: -.025em; }
+    .pipeline-card p { margin: 0; color: var(--muted); font-size: .89rem; }
+    .formula-card { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; border: 1px solid #d2e3ea; border-radius: 19px; background: linear-gradient(135deg, #eff7fa, #f5faf8); padding: 27px; margin-top: 22px; }
+    .formula-card .formula-label { color: var(--blue); text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; font-weight: 800; }
+    .formula { color: var(--ink); font-size: clamp(1rem, 2vw, 1.28rem); font-weight: 700; margin: 10px 0; line-height: 1.65; white-space: normal; }
+    .formula-card p { color: var(--muted); margin: 0; font-size: .86rem; }
+    .data-toolbar { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin: 8px 0 18px; }
+    .tab-list { display: flex; gap: 5px; padding: 4px; border-radius: 12px; background: #e8eef3; flex-wrap: wrap; }
+    .tab-btn { border: 0; padding: 9px 14px; background: transparent; color: #55697b; cursor: pointer; border-radius: 9px; font-weight: 750; font-size: .82rem; transition: background .2s ease; }
+    .tab-btn[aria-selected="true"] { color: var(--ink); background: white; box-shadow: 0 3px 12px rgba(25,40,57,.1); }
+    .ratio-group { display: flex; gap: 7px; align-items: center; }
+    .ratio-label { color: var(--muted); font-size: .81rem; font-weight: 700; }
+    .ratio-btn { border-radius: 9px; background: white; color: var(--muted); border: 1px solid var(--line); padding: 7px 10px; cursor: pointer; font-weight: 700; font-size: .81rem; }
+    .ratio-btn[aria-pressed="true"] { color: white; background: var(--blue-dark); border-color: var(--blue-dark); }
+    .results-layout { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,.85fr); gap: 19px; }
+    .results-layout > *, .citation-box, .figure-card { min-width: 0; }
+    .table-card, .chart-card { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 22px; box-shadow: 0 6px 24px rgba(25,52,69,.04); }
+    .table-card h3, .chart-card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .table-card .small, .chart-card .small { color: var(--muted); font-size: .77rem; margin: 0 0 16px; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .83rem; }
+    th { font-size: .73rem; letter-spacing: -.01em; color: var(--muted); font-weight: 750; border-bottom: 1px solid var(--line); padding: 11px 10px; }
+    td { border-bottom: 1px solid #eef2f5; color: #3a4c60; padding: 12px 10px; }
+    th:first-child, td:first-child { text-align: left; padding-left: 12px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr.ours { background: #eaf5f4; }
+    tbody tr.ours td { color: #19566b; font-weight: 800; }
+    tbody tr.ours td:first-child { border-radius: 8px 0 0 8px; }
+    tbody tr.ours td:last-child { border-radius: 0 8px 8px 0; }
+    .chart-note { color: var(--muted); font-size: .75rem; margin-top: 14px; line-height: 1.5; }
+    .bar-row { display: grid; grid-template-columns: 91px 1fr 64px; align-items: center; gap: 8px; margin: 14px 0; }
+    .bar-name { font-size: .77rem; font-weight: 700; color: var(--ink-light); }
+    .bar-track { height: 10px; background: #edf2f6; border-radius: 20px; overflow: hidden; }
+    .bar-fill { display: block; height: 100%; background: #a8bbc7; border-radius: 20px; min-width: 4px; }
+    .bar-fill.ours { background: linear-gradient(90deg, #327f9a, #58a092); }
+    .bar-value { text-align: right; color: #405266; font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .result-footnote { color: var(--muted); font-size: .8rem; margin: 17px 0 0; }
+    .mini-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; margin: 0 0 24px; }
+    .mini-stat { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px 18px; text-align: center; }
+    .mini-stat .number { color: var(--blue-dark); font-size: clamp(1.13rem,2.3vw,1.62rem); line-height: 1.2; font-weight: 800; display: block; }
+    .mini-stat .label { color: var(--muted); font-size: .8rem; margin-top: 8px; display: block; }
+    .visual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 19px; }
+    .visual-grid .figure-media { min-height: 200px; }
+    .detail-copy strong { color: var(--ink); }
+    .demo-panel { border: 1px solid var(--line); border-radius: 22px; padding: 13px; background: #fff; box-shadow: var(--shadow); }
+    .demo-frame { width: 100%; min-height: 1020px; border: 0; border-radius: 14px; background: #edf2f6; display: block; }
+    .demo-open { margin-top: 14px; text-align: center; font-size: .86rem; }
+    .citation-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 18px; }
+    .citation-head h2 { font-size: 1.85rem; }
+    .copy-btn { border: 1px solid #cadde4; background: #f0f7fa; border-radius: 10px; color: var(--blue-dark); padding: 9px 15px; font-weight: 800; cursor: pointer; }
+    .citation-box { background: #1a2838; color: #e0edf6; border-radius: 17px; padding: 22px 25px; border: 1px solid #20344b; overflow-x: auto; }
+    .citation-box pre { margin: 0; white-space: pre; font: 500 .83rem/1.7 'SFMono-Regular', Consolas, monospace; }
+    .footer { border-top: 1px solid var(--line); background: #fbfcfe; text-align: center; padding: 39px 20px 45px; color: #748494; font-size: .83rem; }
+    .footer p { margin: 6px auto; }
+    .footer a { color: #53748a; text-underline-offset: 3px; }
+    .js-enabled .reveal { opacity: 0; transform: translateY(17px); transition: opacity .7s ease, transform .7s ease; }
+    .js-enabled .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1000px) {
+      .nav-links { gap: 13px; }
+      .nav-links a { font-size: .78rem; }
+      .pipeline { grid-template-columns: repeat(2,1fr); }
+      .results-layout { grid-template-columns: 1fr; }
+      .demo-frame { min-height: 1250px; }
+    }
+    @media (max-width: 700px) {
+      .container { width: min(var(--width), calc(100% - 32px)); }
+      .nav { min-height: 62px; }
+      .brand-tag { display: none; }
+      .menu-toggle { display: inline-flex; }
+      .nav-links { display: none; position: absolute; top: calc(100% - 1px); left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; background: white; border-bottom: 1px solid var(--line); box-shadow: 0 15px 25px rgba(25,40,57,.08); padding: 8px 20px 16px; }
+      .nav-links.open { display: flex; }
+      .nav-links a { display: block; padding: 10px; font-size: .91rem; }
+      .hero { padding: 50px 0 48px; }
+      h1 { font-size: clamp(2.1rem, 10vw, 3.35rem); }
+      .hero-buttons { gap: 8px; }
+      .btn { font-size: .83rem; padding: 9px 16px; }
+      .author-list { gap: 7px 13px; font-size: .88rem; }
+      .affiliations span { display: block; margin: 3px auto; }
+      .hero-metrics { grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 30px; }
+      .hero-metrics .metric:last-child { grid-column: 1 / -1; }
+      .metric { padding: 15px 9px; }
+      .hero-figure { margin-top: 25px; }
+      .section { padding: 60px 0; }
+      .prose { text-align: left; font-size: .95rem; }
+      .challenge-grid, .split, .pipeline, .formula-card, .visual-grid, .mini-stats { grid-template-columns: 1fr; }
+      .split { gap: 15px; }
+      .figure-card { padding: 9px; }
+      .figure-caption { padding: 12px 8px 3px; }
+      .hero-figure .figure-fallback { min-height: 330px; }
+      .fallback-arrow { display: none; }
+      .fallback-step { width: calc(50% - 8px); }
+      .table-card, .chart-card { padding: 17px 12px; }
+      .bar-row { grid-template-columns: 74px 1fr 57px; }
+      .tab-btn { padding: 8px 10px; }
+      .demo-frame { min-height: 1950px; }
+      .citation-box { padding: 18px 15px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      .js-enabled .reveal { opacity: 1; transform: none; }
+    }
+  </style>
 </head>
 <body>
+  <!-- IMAGE SETUP: Place paper figures in the folder "image" next to this index.html.
+       Recommended exact filenames (from the paper's fig/ folder):
+       overview.jpg, trade_off.jpeg.
+       If an optional image is absent, the page shows a labeled placeholder.
+       Keep video_demo.html at the same level as index.html. -->
+  <div class="nav-wrap">
+    <nav class="nav container" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="REFINE home"><span class="brand-symbol">R</span><span class="brand-name">REFINE</span><span class="brand-tag">ECCV 2026</span></a>
+      <button class="menu-toggle" type="button" aria-label="Toggle menu" aria-controls="nav-links" aria-expanded="false">☰ Menu</button>
+      <div class="nav-links" id="nav-links">
+        <a href="#abstract">Abstract</a>
+        <a href="#motivation">Motivation</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#demo">Demo</a>
+        <a href="#bibtex">BibTeX</a>
+        <a class="nav-code" href="https://github.com/ZhangChen2022/REFINE" target="_blank" rel="noopener noreferrer">Code ↗</a>
+      </div>
+    </nav>
+  </div>
 
-<section class="hero">
-  <div class="hero-body">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered">
-        <div class="column has-text-centered">
-          <h1 class="title is-2 publication-title">[ECCV 2026] REFINE: Super-efficient 3D Gaussian Splatting Pruning via Rendering-Free Primitive Importance</h1>
-          
-          <div class="is-size-5 publication-authors">
-            <span class="author-block">
-              <a href="https://github.com/ZhangChen2022">Zhang Chen</a><sup>1</sup>,
-            </span>
-            <span class="author-block">
-              Shuai Wan<sup>1</sup>,
-            </span>
-            <span class="author-block">
-              Mengting Yu<sup>1</sup>,
-            </span>
-            <span class="author-block">
-              Fuzheng Yang<sup>2</sup>,
-            </span>
-            <span class="author-block">
-              Junhui Hou<sup>3</sup>
-            </span>
-          </div>
-
-          <div class="is-size-6 publication-authors" style="margin-top: 15px;">
-            <span class="author-block"><sup>1</sup>School of Electronics and Information, Northwestern Polytechnical University</span><br>
-            <span class="author-block"><sup>2</sup>School of Telecommunication Engineering, Xidian University</span><br>
-            <span class="author-block"><sup>3</sup>Department of Computer Science, City University of Hong Kong</span>
-          </div>
-
-          <div class="column has-text-centered">
-            <div class="publication-links">
-              <span class="link-block">
-                <a href="./paper.pdf"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Paper</span>
-                </a>
-              </span>
-
-              <span class="link-block">
-                <a href="https://arxiv.org/abs/2606.09074"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-              </span>
-              
-              <span class="link-block">
-                <a href="https://github.com/ZhangChen2022/REFINE"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
-                  <span>Code</span>
-                  </a>
-              </span>
+  <header class="hero" id="top">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> ECCV 2026 · Research Project</div>
+        <h1><span class="accent">REFINE</span>: Super-efficient 3D Gaussian Splatting Pruning via Rendering-Free Primitive Importance</h1>
+        <p class="hero-subtitle">Preserving rendering fidelity without rendering to estimate primitive importance: a fast, plug-and-play post-processing framework for 3D Gaussian Splatting.</p>
+        <div class="author-list" aria-label="Authors">
+          <span><a href="https://github.com/ZhangChen2022" target="_blank" rel="noopener noreferrer">Zhang Chen</a><sup>1</sup></span>
+          <span>Shuai Wan<sup>1,*</sup></span>
+          <span>Mengting Yu<sup>1</sup></span>
+          <span>Fuzheng Yang<sup>2</sup></span>
+          <span>Junhui Hou<sup>3</sup></span>
+        </div>
+        <div class="affiliations">
+          <span><sup>1</sup> School of Electronics and Information, Northwestern Polytechnical University</span>
+          <span><sup>2</sup> School of Telecommunication Engineering, Xidian University</span>
+          <span><sup>3</sup> Department of Computer Science, City University of Hong Kong</span>
+          <span><sup>*</sup> Corresponding author</span>
+        </div>
+        <div class="hero-buttons">
+          <a class="btn primary" href="./paper.pdf" target="_blank" rel="noopener noreferrer"><span class="btn-icon">▣</span> Paper (PDF)</a>
+          <a class="btn outline" href="https://arxiv.org/abs/2606.09074" target="_blank" rel="noopener noreferrer"><span class="btn-icon">↗</span> arXiv</a>
+          <a class="btn outline" href="https://github.com/ZhangChen2022/REFINE" target="_blank" rel="noopener noreferrer"><span class="btn-icon">⌘</span> GitHub Code</a>
+          <a class="btn outline" href="#demo"><span class="btn-icon">▶</span> Interactive Demo</a>
+        </div>
+      </div>
+      <div class="hero-metrics reveal" aria-label="Key project highlights">
+        <div class="metric"><strong>&gt;3,000×</strong><span>Fewer pruning-related FLOPs versus PUP in the reported comparison</span></div>
+        <div class="metric"><strong>Rendering-free</strong><span>No image rendering passes for importance estimation</span></div>
+        <div class="metric"><strong>3 benchmarks</strong><span>Mip-NeRF 360 · Tanks &amp; Temples · Deep Blending</span></div>
+      </div>
+      <figure class="figure-card hero-figure reveal">
+        <div class="figure-media">
+          <img data-optional-image src="image/overview.jpg" alt="Overview of the REFINE method, from pre-trained 3D Gaussians to rendering-free importance evaluation and pruning" loading="eager">
+          <div class="figure-fallback">
+            <span class="placeholder-label">REFINE · Method at a glance</span>
+            <div class="fallback-pipeline" aria-label="Pretrained 3DGS to rendering-free scoring to global pruning">
+              <div class="fallback-step"><strong>Pre-trained 3DGS</strong><small>Gaussian primitives</small></div>
+              <span class="fallback-arrow" aria-hidden="true">→</span>
+              <div class="fallback-step"><strong>Hessian field</strong><small>Visibility + projection</small></div>
+              <span class="fallback-arrow" aria-hidden="true">→</span>
+              <div class="fallback-step"><strong>Importance score</strong><small>Adaptive attribute weights</small></div>
+              <span class="fallback-arrow" aria-hidden="true">→</span>
+              <div class="fallback-step"><strong>Pruned 3DGS</strong><small>Keep important primitives</small></div>
             </div>
+            <p>For the paper's full overview figure, add:</p>
+            <code>image/overview.jpg</code>
+          </div>
+        </div>
+        <figcaption class="figure-caption">REFINE analytically approximates a rendering-aware Hessian field, builds primitive-wise importance scores, and removes the least important Gaussians without forward rendering.</figcaption>
+      </figure>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="abstract">
+      <div class="container">
+        <div class="section-heading reveal"><p class="kicker">Overview</p><h2>Abstract</h2></div>
+        <div class="prose reveal">
+          <p>Existing pruning methods for 3D Gaussian splatting (3DGS) suffer from either severe quality degradation or prohibitive computational overhead. In this paper, we propose <strong>REFINE</strong>, a highly accelerated 3DGS pruning framework centered on a novel rendering-free primitive importance metric. Our approach leverages an analytically approximated, rendering-aware Hessian field to quantify the expected perceptual error induced by the removal of individual primitives. By modeling the joint modulation of visibility, projection geometry and the content-adaptive hyperparameter, we entirely bypass costly forward rendering passes and derive an anisotropic perceptual weight field that serves as a high-fidelity proxy for primitive importance. Extensive experiments across multiple benchmark datasets demonstrate that REFINE maintains highly competitive rendering quality while achieving a <strong>3,000× reduction in pruning-related computational complexity</strong>, translating to a practical 20× speedup in device latency compared to state-of-the-art pruning methods.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="motivation">
+      <div class="container">
+        <div class="section-heading reveal"><p class="kicker">Why REFINE?</p><h2>Breaking the quality–efficiency trade-off</h2><p>How can we identify Gaussians that matter to the final image without paying the cost of evaluating that image?</p></div>
+        <div class="challenge-grid">
+          <article class="info-card reveal"><div class="icon-box">01</div><h3>Parameter-only importance</h3><p>Fast criteria based on opacity or geometry avoid rendering, but do not fully capture how a primitive affects image fidelity.</p></article>
+          <article class="info-card reveal"><div class="icon-box">02</div><h3>Rendering-aware importance</h3><p>Pixel-space accumulation or Hessian sensitivity can better reflect rendering quality, but repeated rasterization introduces substantial compute.</p></article>
+          <article class="info-card featured reveal"><div class="icon-box">03</div><h3>REFINE: both perspectives</h3><p>Estimate rendering-aware sensitivity analytically from visibility, projection, and scene-adaptive attributes—without forward rendering.</p></article>
+        </div>
+        <div class="split">
+          <figure class="figure-card reveal">
+            <div class="figure-media">
+              <img data-optional-image src="image/trade_off.jpeg" alt="Quality versus efficiency trade-off for pruning on Mip-NeRF 360 at a 50 percent pruning ratio" loading="lazy">
+              <div class="figure-fallback"><span class="placeholder-label">Paper figure · Trade-off</span><span class="placeholder-name">Quality versus efficiency</span><code>image/trade_off.jpeg</code><p>Copy the manuscript's fig/trade_off.jpeg here.</p></div>
+            </div>
+            <figcaption class="figure-caption">Quality–efficiency trade-off on Mip-NeRF 360 at 50% pruning (figure from the paper).</figcaption>
+          </figure>
+          <div class="side-text reveal">
+            <h3>The key observation</h3>
+            <p>Rendering-aware importance does not have to require an expensive renderer during pruning. REFINE starts from the Gauss–Newton / Fisher interpretation of image-space sensitivity, then approximates the field with simple physical factors.</p>
+            <ul>
+              <li><strong>No additional forward rendering</strong> for importance calculation.</li>
+              <li><strong>Zero-shot pruning</strong> of existing, pre-trained 3DGS scenes.</li>
+              <li><strong>Global ranking</strong> to meet the chosen primitive budget.</li>
+            </ul>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section class="section">
-  <div class="container is-max-desktop">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
-          <p>
-         Existing pruning methods for 3D Gaussian splatting (3DGS) suffer from either severe quality degradation or prohibitive computational overhead. In this paper, we propose REFINE, a highly accelerated 3DGS pruning framework centered on a novel rendering-free primitive importance metric. Our approach leverages an analytically approximated, rendering-aware Hessian field to quantify the expected perceptual error induced by the removal of individual primitives. By modeling the joint modulation of visibility, projection geometry and the content adaptive hyperparameter, we entirely bypass costly forward rendering passes and derive an anisotropic perceptual weight field that serves as a high-fidelity proxy for primitive importance. Extensive experiments across multiple benchmark datasets demonstrate that REFINE maintains highly competitive rendering quality while achieving a 3,000× reduction in pruning-related computational complexity, translating to a practical 20× speedup in device latency compared to state-of-the-art pruning methods.
-          </p>
+    <section class="section" id="method">
+      <div class="container">
+        <div class="section-heading reveal"><p class="kicker">Methodology</p><h2>Rendering-free primitive importance</h2><p>REFINE replaces costly image-space sensitivity accumulation with a structured analytical approximation of a rendering-aware Hessian field.</p></div>
+        <div class="pipeline">
+          <article class="pipeline-card reveal"><span class="step-number">01</span><h3>Start from sensitivity</h3><p>The Gauss–Newton matrix <strong>H = JᵀJ</strong> describes how Gaussian parameter perturbations alter the rendered image.</p></article>
+          <article class="pipeline-card reveal"><span class="step-number">02</span><h3>Model visibility</h3><p>Estimate view-dependent influence using opacity, with a conservative zero-occlusion approximation instead of explicit depth sorting.</p></article>
+          <article class="pipeline-card reveal"><span class="step-number">03</span><h3>Model projection</h3><p>Approximate image-space influence from camera-relative depth using an inverse-square geometric term.</p></article>
+          <article class="pipeline-card reveal"><span class="step-number">04</span><h3>Adapt and prune</h3><p>Calibrate geometry, color, and opacity sensitivity from scene statistics; rank primitives and remove the lowest scores.</p></article>
+        </div>
+        <div class="formula-card reveal">
+          <div><span class="formula-label">Rendering-free Hessian weight</span><div class="formula">wᵢᵏ = λᵏ · meanᵥ [ αᵢ / ((zᵢᵛ)² + η) ]</div><p>Combines opacity, viewpoint-relative depth, and content-adaptive weights; the paper uses η = 0.05 for numerical stability.</p></div>
+          <div><span class="formula-label">Primitive importance &amp; pruning</span><div class="formula">D(Gᵢ) = Σₖ wᵢᵏ · G̃ᵢᵏ</div><p>Attributes k cover geometry, color, and opacity. All primitives are ranked by importance and the lowest-scoring fraction is removed.</p></div>
+        </div>
+        <div class="challenge-grid" style="margin-top:20px">
+          <article class="info-card reveal"><div class="icon-box">V</div><h3>Visibility</h3><p>A conservative approximation lets primitive opacity stand in for accumulated visibility without alpha-blending rasterization.</p></article>
+          <article class="info-card reveal"><div class="icon-box">P</div><h3>Projection</h3><p>Camera-relative depth summarizes the effect of perspective geometry on the spatial contribution of a Gaussian.</p></article>
+          <article class="info-card reveal"><div class="icon-box">λ</div><h3>Scene adaptation</h3><p>Color variance, opacity ambiguity, and scale anisotropy adjust the weighting of appearance and geometric attributes.</p></article>
         </div>
       </div>
-    </div>
-    </div>
-</section>
+    </section>
 
-<section class="section">
-  <div class="container is-max-widescreen"> 
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3 has-text-centered">Visual Comparison Across Scenes</h2>
-        <iframe src="./video_demo.html" width="100%" height="1100px" style="border:none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="BibTeX">
-  <div class="container is-max-desktop content">
-    <h2 class="title">BibTeX</h2>
-    <pre><code>@article{chen2026refine,
-  author    = {Chen, Zhang and Wan, Shuai and Yu, Mengting and Yang, Fuzheng and Hou, Junhui},
-  title     = {REFINE: Super-efficient 3D Gaussian Splatting Pruning via Rendering-Free Primitive Importance},
-  journal   = {European Conference on Computer Vision (ECCV)},
-  year      = {2026},
-}</code></pre>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="container">
-    <div class="content has-text-centered">
-      <a class="icon-link" href="./paper.pdf">
-        <i class="fas fa-file-pdf"></i>
-      </a>
-      <a class="icon-link" href="https://github.com/ZhangChen2022" class="external-link" disabled>
-        <i class="fab fa-github"></i>
-      </a>
-    </div>
-    <div class="columns is-centered">
-      <div class="column is-8">
-        <div class="content">
-          <p>
-            This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>. 
-            Template borrowed from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
-          </p>
+    <section class="section alt" id="results">
+      <div class="container">
+        <div class="section-heading reveal"><p class="kicker">Experiments</p><h2>Competitive fidelity. Dramatically lower cost.</h2><p>Results from the provided ECCV 2026 manuscript. All main pruning-quality comparisons are zero-shot, without post-pruning fine-tuning.</p></div>
+        <div class="mini-stats reveal">
+          <div class="mini-stat"><span class="number">10%–70%</span><span class="label">Evaluated pruning ratios</span></div>
+          <div class="mini-stat"><span class="number">3.14 GFLOPs</span><span class="label">REFINE importance evaluation · Mip-NeRF 360</span></div>
+          <div class="mini-stat"><span class="number">1.67 / 1.77</span><span class="label">GFLOPs · Tanks &amp; Temples / Deep Blending</span></div>
         </div>
+        <div class="data-toolbar reveal">
+          <div class="tab-list" role="tablist" aria-label="Choose evaluation dataset">
+            <button class="tab-btn dataset-tab" type="button" role="tab" aria-selected="true" data-dataset="mip">Mip-NeRF 360</button>
+            <button class="tab-btn dataset-tab" type="button" role="tab" aria-selected="false" data-dataset="tanks">Tanks &amp; Temples</button>
+            <button class="tab-btn dataset-tab" type="button" role="tab" aria-selected="false" data-dataset="deep">Deep Blending</button>
+          </div>
+          <div class="ratio-group" role="group" aria-label="Choose pruning ratio"><span class="ratio-label">Pruning:</span>
+            <button class="ratio-btn" type="button" aria-pressed="false" data-ratio="10">10%</button>
+            <button class="ratio-btn" type="button" aria-pressed="false" data-ratio="30">30%</button>
+            <button class="ratio-btn" type="button" aria-pressed="true" data-ratio="50">50%</button>
+            <button class="ratio-btn" type="button" aria-pressed="false" data-ratio="70">70%</button>
+          </div>
+        </div>
+        <div class="results-layout reveal">
+          <div class="table-card">
+            <h3 id="results-heading">Mip-NeRF 360 · 50% pruning</h3>
+            <p class="small">PSNR ↑ / SSIM ↑ / LPIPS ↓ represent rendering quality; time and GFLOPs are pruning-related costs.</p>
+            <div class="table-scroll"><table aria-label="Quantitative comparisons of 3D Gaussian Splatting pruning methods"><thead><tr><th>Method</th><th>PSNR ↑</th><th>SSIM ↑</th><th>LPIPS ↓</th><th>Time (s) ↓</th><th>GFLOPs ↓</th></tr></thead><tbody id="benchmark-body"><tr class="ours"><td>REFINE (Ours)</td><td>26.61</td><td>0.800</td><td>0.233</td><td>3.85</td><td>3.14</td></tr><tr><td>LightGaussian</td><td>26.92</td><td>0.806</td><td>0.225</td><td>30.07</td><td>2855.78</td></tr><tr><td>MesonGS</td><td>27.06</td><td>0.809</td><td>0.222</td><td>41.43</td><td>9539.19</td></tr><tr><td>PUP 3D-GS</td><td>26.07</td><td>0.790</td><td>0.241</td><td>37.02</td><td>9582.81</td></tr><tr><td>GHAP</td><td>20.44</td><td>0.571</td><td>0.470</td><td>10.70</td><td>136.23</td></tr></tbody></table></div>
+          </div>
+          <div class="chart-card"><h3>Computational cost</h3><p class="small">Importance-evaluation GFLOPs · logarithmic bar scale</p><div id="cost-bars" aria-label="Comparison of compute cost across methods">
+            <div class="bar-row"><span class="bar-name">REFINE</span><div class="bar-track"><span class="bar-fill ours" style="width:9%"></span></div><span class="bar-value">3.14</span></div>
+            <div class="bar-row"><span class="bar-name">LightGaussian</span><div class="bar-track"><span class="bar-fill" style="width:86%"></span></div><span class="bar-value">2855.78</span></div>
+            <div class="bar-row"><span class="bar-name">MesonGS</span><div class="bar-track"><span class="bar-fill" style="width:99%"></span></div><span class="bar-value">9539.19</span></div>
+            <div class="bar-row"><span class="bar-name">PUP 3D-GS</span><div class="bar-track"><span class="bar-fill" style="width:100%"></span></div><span class="bar-value">9582.81</span></div>
+            <div class="bar-row"><span class="bar-name">GHAP</span><div class="bar-track"><span class="bar-fill" style="width:54%"></span></div><span class="bar-value">136.23</span></div>
+          </div><p class="chart-note" id="compute-insight">At 50% pruning, REFINE uses around 3,052× fewer GFLOPs than PUP 3D-GS on Mip-NeRF 360.</p></div>
+        </div>
+        <p class="result-footnote reveal">The table reports dataset-level values from the supplied paper, not live benchmarks. Processing time includes pruning-related work; very low GFLOPs need not imply an equal factor of wall-clock acceleration.</p>
       </div>
-    </div>
-  </div>
-</footer>
+    </section>
 
+    <section class="section" id="demo">
+      <div class="container">
+        <div class="section-heading reveal"><p class="kicker">Interactive Demo</p><h2>Explore visual comparisons across scenes</h2><p>Inspect qualitative scene differences using the existing interactive viewer. The demo stays in <code>video_demo.html</code> and can be updated independently of this page.</p></div>
+        <div class="demo-panel reveal"><iframe class="demo-frame" src="./video_demo.html" title="Interactive REFINE visual comparison across scenes" loading="lazy"></iframe></div>
+        <div class="demo-open"><a href="./video_demo.html" target="_blank" rel="noopener noreferrer">Open the interactive demo in a new tab ↗</a></div>
+      </div>
+    </section>
+
+    <section class="section alt" id="bibtex">
+      <div class="container" style="max-width:915px">
+        <div class="citation-head reveal"><div><p class="kicker">Citation</p><h2>BibTeX</h2></div><button id="copy-bibtex" type="button" class="copy-btn" aria-live="polite">Copy BibTeX</button></div>
+        <div class="citation-box reveal"><pre><code id="bibtex-code">@inproceedings{chen2026refine,
+  title={REFINE: Super-Efficient 3D Gaussian Splatting Pruning via Re ndering-F ree Primitive I mporta nce},
+  author={Chen, Zhang and Wan, Shuai and Yu, Mengting and Yang, Fuzheng and Hou, Junhui},
+  booktitle={European Conference on Computer Vision},
+  pages={131--147},
+  year={2026}.
+}</code></pre></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><strong>REFINE</strong> · ECCV 2026 · Research project page</p>
+    <p><a href="./paper.pdf">Paper</a> &nbsp;·&nbsp; <a href="https://arxiv.org/abs/2606.09074" target="_blank" rel="noopener noreferrer">arXiv</a> &nbsp;·&nbsp; <a href="https://github.com/ZhangChen2022/REFINE" target="_blank" rel="noopener noreferrer">Code</a></p>
+    <p>Original project page based on the <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener noreferrer">Nerfies template</a>. <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.</p>
+  </footer>
+
+  <script>
+    'use strict';
+    // Only the page itself is changed; video_demo.html, paper.pdf and other existing files stay untouched.
+    document.documentElement.classList.add('js-enabled');
+
+    const menuButton = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('#nav-links');
+    menuButton.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', String(isOpen));
+    });
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuButton.setAttribute('aria-expanded', 'false');
+    }));
+
+    // Optional figures degrade gracefully when they have not yet been copied into image/.
+    document.querySelectorAll('img[data-optional-image]').forEach(img => {
+      const surface = img.closest('.figure-media');
+      const missing = () => surface.classList.add('is-missing');
+      img.addEventListener('error', missing);
+      img.addEventListener('load', () => surface.classList.remove('is-missing'));
+      if (img.complete && img.naturalWidth === 0) missing();
+    });
+
+    // The following values are transcribed from the user's REFINE manuscript,
+    // Tables 1 and 2. Each quality item is [PSNR, SSIM, LPIPS].
+    const ratios = ['10', '30', '50', '70'];
+    const datasets = {
+      mip: {
+        label: 'Mip-NeRF 360',
+        rows: {
+          refine: {name:'REFINE (Ours)', q:[[27.34,.814,.217],[27.29,.813,.218],[26.61,.800,.233],[24.43,.745,.285]], t:[5.90,5.46,3.85,2.55], g:3.14},
+          light: {name:'LightGaussian', q:[[27.34,.814,.217],[27.33,.814,.217],[26.92,.806,.225],[24.73,.762,.264]], t:[42.14,37.60,30.07,26.88], g:2855.78},
+          meson: {name:'MesonGS', q:[[27.33,.814,.217],[27.33,.814,.217],[27.06,.809,.222],[25.46,.783,.245]], t:[48.99,44.80,41.43,33.70], g:9539.19},
+          pup: {name:'PUP 3D-GS', q:[[27.34,.814,.217],[27.24,.812,.219],[26.07,.790,.241],[25.12,.786,.259]], t:[44.01,40.28,37.02,38.15], g:9582.81},
+          ghap: {name:'GHAP', q:[[20.65,.607,.445],[20.62,.594,.455],[20.44,.571,.470],[19.93,.530,.494]], t:[14.56,12.42,10.70,8.96], g:[244.30,190.26,136.23,82.19]}
+        }
+      },
+      tanks: {
+        label: 'Tanks & Temples',
+        rows: {
+          refine: {name:'REFINE (Ours)', q:[[23.38,.841,.183],[23.33,.839,.185],[22.97,.828,.196],[20.98,.776,.243]], t:[3.34,2.70,1.99,1.36], g:1.67},
+          light: {name:'LightGaussian', q:[[23.39,.842,.183],[23.38,.841,.183],[23.24,.835,.190],[21.96,.797,.225]], t:[28.88,26.62,24.70,22.64], g:2128.25},
+          meson: {name:'MesonGS', q:[[23.38,.841,.184],[23.38,.841,.184],[23.18,.834,.191],[22.04,.803,.220]], t:[21.99,20.27,18.47,14.11], g:7104.05},
+          pup: {name:'PUP 3D-GS', q:[[23.39,.842,.183],[23.38,.841,.184],[23.18,.832,.193],[21.39,.787,.233]], t:[18.90,17.75,15.92,16.75], g:7136.18},
+          ghap: {name:'GHAP', q:[[16.84,.592,.467],[17.00,.587,.473],[16.97,.576,.482],[16.82,.553,.501]], t:[7.67,6.62,5.71,4.84], g:[129.59,100.93,72.26,43.60]}
+        }
+      },
+      deep: {
+        label: 'Deep Blending',
+        rows: {
+          refine: {name:'REFINE (Ours)', q:[[29.52,.903,.242],[29.49,.903,.243],[29.28,.899,.249],[27.93,.871,.282]], t:[5.37,4.31,3.33,1.42], g:1.77},
+          light: {name:'LightGaussian', q:[[29.52,.903,.242],[29.51,.903,.243],[29.36,.900,.247],[28.38,.883,.269]], t:[33.69,32.39,29.16,25.96], g:3301.74},
+          meson: {name:'MesonGS', q:[[29.53,.903,.242],[29.53,.903,.242],[29.43,.902,.245],[28.68,.890,.262]], t:[24.41,21.09,18.00,12.83], g:11017.66},
+          pup: {name:'PUP 3D-GS', q:[[29.52,.903,.242],[29.51,.903,.243],[29.28,.899,.248],[29.14,.894,.256]], t:[19.94,16.92,13.84,15.15], g:11067.59},
+          ghap: {name:'GHAP', q:[[23.12,.768,.456],[23.18,.767,.459],[23.16,.763,.464],[22.92,.752,.475]], t:[13.04,10.93,9.37,7.88], g:[216.19,168.37,120.55,72.74]}
+        }
+      }
+    };
+
+    let currentDataset = 'mip';
+    let currentRatio = '50';
+    const rowOrder = ['refine', 'light', 'meson', 'pup', 'ghap'];
+    function getValue(item, index) { return Array.isArray(item) ? item[index] : item; }
+    function renderResults() {
+      const dataset = datasets[currentDataset];
+      const index = ratios.indexOf(currentRatio);
+      document.querySelector('#results-heading').textContent = `${dataset.label} · ${currentRatio}% pruning`;
+      const body = document.querySelector('#benchmark-body');
+      body.replaceChildren();
+      const chart = document.querySelector('#cost-bars');
+      chart.replaceChildren();
+      const maxGF = Math.max(...rowOrder.map(key => getValue(dataset.rows[key].g, index)));
+      rowOrder.forEach(key => {
+        const item = dataset.rows[key];
+        const [psnr, ss, lp] = item.q[index];
+        const gf = getValue(item.g, index);
+        const tr = document.createElement('tr');
+        if (key === 'refine') tr.className = 'ours';
+        [item.name, psnr.toFixed(2), ss.toFixed(3), lp.toFixed(3), item.t[index].toFixed(2), gf.toFixed(2)].forEach(value => {
+          const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
+        });
+        body.appendChild(tr);
+        const barRow = document.createElement('div'); barRow.className = 'bar-row';
+        const name = document.createElement('span'); name.className = 'bar-name'; name.textContent = key === 'refine' ? 'REFINE' : item.name;
+        const track = document.createElement('div'); track.className = 'bar-track';
+        const fill = document.createElement('span'); fill.className = 'bar-fill' + (key === 'refine' ? ' ours' : '');
+        const percent = 9 + 91 * Math.log10(Math.max(1, gf)) / Math.log10(maxGF);
+        fill.style.width = `${Math.min(100, percent).toFixed(2)}%`;
+        track.appendChild(fill);
+        const value = document.createElement('span'); value.className = 'bar-value'; value.textContent = gf.toFixed(2);
+        barRow.append(name, track, value);
+        chart.appendChild(barRow);
+      });
+      const refineGF = getValue(dataset.rows.refine.g, index);
+      const pupGF = getValue(dataset.rows.pup.g, index);
+      const speed = dataset.rows.pup.t[index] / dataset.rows.refine.t[index];
+      document.querySelector('#compute-insight').textContent = `At ${currentRatio}% pruning, REFINE uses ~${Math.round(pupGF/refineGF).toLocaleString('en-US')}× fewer GFLOPs than PUP 3D-GS on ${dataset.label}, with ~${speed.toFixed(1)}× lower measured pruning time.`;
+    }
+    document.querySelectorAll('.dataset-tab').forEach(btn => btn.addEventListener('click', () => {
+      currentDataset = btn.dataset.dataset;
+      document.querySelectorAll('.dataset-tab').forEach(el => el.setAttribute('aria-selected', String(el === btn)));
+      renderResults();
+    }));
+    document.querySelectorAll('.ratio-btn').forEach(btn => btn.addEventListener('click', () => {
+      currentRatio = btn.dataset.ratio;
+      document.querySelectorAll('.ratio-btn').forEach(el => el.setAttribute('aria-pressed', String(el === btn)));
+      renderResults();
+    }));
+    renderResults();
+
+    const copyButton = document.querySelector('#copy-bibtex');
+    copyButton.addEventListener('click', async () => {
+      const value = document.querySelector('#bibtex-code').textContent;
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(value);
+        copyButton.textContent = 'Copied ✓';
+      } catch (error) {
+        const input = document.createElement('textarea');
+        input.value = value; input.style.position = 'fixed'; input.style.opacity = '0';
+        document.body.appendChild(input); input.select();
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+        input.remove();
+        copyButton.textContent = copied ? 'Copied ✓' : 'Select and copy the text below';
+      }
+    });
+
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
+      }, { threshold: .06, rootMargin: '0px 0px 45px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    } else {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+    }
+  </script>
 </body>
 </html>

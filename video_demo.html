@@ -63,13 +63,13 @@
       border-color: #3498db;
     }
 
-      .gallery {
-      display: grid; /* 启用网格布局 */
-      grid-template-columns: repeat(2, 1fr); /* 核心代码：强制每一行平均分两列 */
-      gap: 30px; /* 两个视频之间的间距 */
-      width: 100%;
-      max-width: 1400px; /* 拓宽视频展示区 */
-    }
+  .gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  max-width: 900px; /* 建议将最大宽度调窄（例如 800px ~ 1000px），避免单栏在宽屏上视频过大失真；如果希望撑满也可以保留 1400px */
+}
 
     .scene-card {
       background: white;
@@ -185,43 +185,43 @@
     "bicycle": {
       "Ours": { psnr: "24.87", gflops: "5.73" },
       "_GHAP": { title: "GHAP", psnr: "19.42", gflops: "248.45" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "24.56", gflops: "41.70" },
-      "_mesonGS": { title: "MesonGS", psnr: "23.83", gflops: "17851.16" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "24.56", gflops: "5888.56" },
+      "_mesonGS": { title: "MesonGS", psnr: "25.03", gflops: "17851.16" },
       "_PUP": { title: "PUP", psnr: "23.98", gflops: "17932.70" }
     },
     "drjohnson": {
       "Ours": { psnr: "28.77", gflops: "3.18" },
       "_GHAP": { title: "GHAP", psnr: "22.66", gflops: "137.95" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "25.62", gflops: "31.38" },
-      "_mesonGS": { title: "MesonGS", psnr: "28.14", gflops: "13438.72" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "28.82", gflops: "4033.42" },
+      "_mesonGS": { title: "MesonGS", psnr: "28.84", gflops: "13438.72" },
       "_PUP": { title: "PUP", psnr: "28.74", gflops: "13499.51" }
     },
     "room": {
       "Ours": { psnr: "30.72", gflops: "1.49" },
       "_GHAP": { title: "GHAP", psnr: "21.49", gflops: "64.54" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "21.96", gflops: "17.36" },
-      "_mesonGS": { title: "MesonGS", psnr: "26.71", gflops: "7436.08" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "30.24", gflops: "2232.01" },
+      "_mesonGS": { title: "MesonGS", psnr: "31.20", gflops: "7436.08" },
       "_PUP": { title: "PUP", psnr: "30.92", gflops: "7469.57" }
     },
     "stump": {
       "Ours": { psnr: "26.45", gflops: "4.64" },
       "_GHAP": { title: "GHAP", psnr: "22.25", gflops: "201.03" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "23.72", gflops: "21.76" },
-      "_mesonGS": { title: "MesonGS", psnr: "26.33", gflops: "9307.12" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "26.34", gflops: "3,116.83" },
+      "_mesonGS": { title: "MesonGS", psnr: "26.54", gflops: "9307.12" },
       "_PUP": { title: "PUP", psnr: "25.05", gflops: "9350.51" }
     },
     "train": {
       "Ours": { psnr: "21.27", gflops: "0.96" },
       "_GHAP": { title: "GHAP", psnr: "15.81", gflops: "41.58" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "19.10", gflops: "10.83" },
-      "_mesonGS": { title: "MesonGS", psnr: "20.30", gflops: "4636.54" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "21.53", gflops: "1390.36" },
+      "_mesonGS": { title: "MesonGS", psnr: "21.56", gflops: "4636.54" },
       "_PUP": { title: "PUP", psnr: "21.48", gflops: "4657.44" }
     },
     "truck": {
       "Ours": { psnr: "24.67", gflops: "2.38" },
       "_GHAP": { title: "GHAP", psnr: "18.13", gflops: "102.95" },
-      "_LighGaussian": { title: "LightGaussian", psnr: "23.64", gflops: "22.35" },
-      "_mesonGS": { title: "MesonGS", psnr: "23.66", gflops: "9571.56" },
+      "_LighGaussian": { title: "LightGaussian", psnr: "24.64", gflops: "3,188.52" },
+      "_mesonGS": { title: "MesonGS", psnr: "24.79", gflops: "9571.56" },
       "_PUP": { title: "PUP", psnr: "24.88", gflops: "9614.91" }
     }
   };
